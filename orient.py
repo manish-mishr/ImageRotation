@@ -42,7 +42,7 @@ def main():
 class neuralNet:
 
 	def __init__(self, trainset, train_dim, numHidden, numLayers=1, numOutput=4):
-		self.numPasses = 5000
+		self.numPasses = 500
 		self.reg = 0.01
 		self.epsilon = 0.01
 		self.trainset = trainset
@@ -54,11 +54,10 @@ class neuralNet:
 
 	def predict(self, x):
 		s = self
-		inp = [s.trainset[tr][1:] for tr in s.trainset]
-		inpa = np.array(inp)
-		z1 = inpa.dot(W1) + b1
+		inpa = np.array(x)
+		z1 = inpa.dot(self.model['w1']) + s.model['b1']
 		a1 = np.tanh(z1)
-		z2 = a1.dot(W2) + b2
+		z2 = a1.dot(s.model['w2']) + s.model['b2']
 		exp_scores = np.exp(z2)
 		probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
 		return np.argmax(probs, axis=1)
@@ -100,7 +99,7 @@ class neuralNet:
 
 				# Backpropagation
 				delta3 = probs
-				delta3[range(len(inpa)), out] -= 1
+				delta3[range(len(inpa)), outa] -= 1
 				dW2 = (a1.T).dot(delta3)
 				db2 = np.sum(delta3, axis=0, keepdims=True)
 				delta2 = delta3.dot(W2.T) * (1 - np.power(a1, 2))
@@ -121,7 +120,7 @@ class neuralNet:
 				'''
 				#adapted for multiple layers from http://www.wildml.com/2015/09/implementing-a-neural-network-from-scratch/
 				#currently has a size mismatch in back propogation step line d = d.dot(s.model['w'+str(l)]) * (1 - np.power(a[l],2))
-				
+
 
 
 				#forward propogation	
