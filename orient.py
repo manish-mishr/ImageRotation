@@ -42,7 +42,7 @@ def main():
 class neuralNet:
 
 	def __init__(self, trainset, train_dim, numHidden, numLayers=1, numOutput=4):
-		self.numPasses = 500
+		self.numPasses = 10
 		self.reg = 0.01
 		self.epsilon = 0.01
 		self.trainset = trainset
@@ -65,15 +65,23 @@ class neuralNet:
 	def train(self):
 		s = self
 
-		inp = [s.trainset[tr][1:] for tr in s.trainset]
-		out = [s.trainset[tr][0]/90 for tr in s.trainset]
+		for tr in s.trainset:
+			inp.append(s.trainset[tr][1:])
+			lst = [0] * 4
+			lst[s.trainset[tr][0]/90] = 1
+			out.append(lst)
+
+
 
 		#initialize all of our hidden layers (each has numHidden neurons)
 		np.random.seed(int(time.time()))
 		W1 = np.random.randn(s.train_dim, s.numHidden) / np.sqrt(s.train_dim)
 		b1 = np.zeros((1, s.numHidden))
+		
 		W2 = np.random.randn(s.numHidden, s.numOutput) / np.sqrt(s.numHidden)
 		b2 = np.zeros((1, s.numOutput))
+		
+
 		'''
 		numWeights = s.train_dim
 		last = 0
@@ -92,18 +100,18 @@ class neuralNet:
 				# Forward propagation
 
 				z1 = inpa.dot(W1) + b1
-				a1 = np.tanh(z1)
+				a1 = s.sigmoid(z1)
 				z2 = a1.dot(W2) + b2
-				exp_scores = np.exp(z2)
-				probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+				a2 = np.sigmoid(z2)
+				probs = a2
 
 				# Backpropagation
-				delta3 = probs
-				delta3[range(len(inpa)), outa] -= 1
+				delta3 = np.multiply(-(outa-probs),s.sigmoidprime(z2))
+				# delta3[range(len(inpa)), outa] -= 1
 				dW2 = (a1.T).dot(delta3)
 				db2 = np.sum(delta3, axis=0, keepdims=True)
-				delta2 = delta3.dot(W2.T) * (1 - np.power(a1, 2))
-				dW1 = np.dot(inpa.T, delta2)
+				delta2 = delta3.dot(W2.T) * s.sigmoidprime(z1)
+				dW1 = np.dot(inpa.T,delta2)
 				db1 = np.sum(delta2, axis=0)
 
 				# Add regularization terms (b1 and b2 don't have regularization terms)
@@ -152,6 +160,11 @@ class neuralNet:
 				for key in model:
 					s.model[key] += -s.epsilon * delta[key]
 				'''
+	def sigmoid(self,z):
+		return 1/(1+np.exp(-z))
+
+	def sigmoidprime(self,z):
+		return np.exp(-z)/((1+np.exp(-z))**2)
 
 
 
